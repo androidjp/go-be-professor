@@ -13,3 +13,6 @@ https://gorm.io/zh_CN/docs/connecting_to_the_database.html
 # 启动之前的准备
 准备好我们的mysql，只要有database 创建好，就可以了，表没有都没关系，会自动创建。
 
+
+# 参考资料
+https://juejin.cn/post/7133150674400837668#heading-7
