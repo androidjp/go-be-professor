@@ -13,10 +13,7 @@ func main() {
 	r := gin.Default()
 	gin.ForceConsoleColor()
 
-	dal.GenerateRepo("./dal/query")
-
 	// 针对user的CRUD
-
 	userG := r.Group("/api/v1/users")
 	{
 		// 批量查询用户

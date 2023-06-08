@@ -4,7 +4,6 @@ import (
 	"demo-gorm-gen/dal/model"
 	"fmt"
 	"gorm.io/driver/mysql"
-	"gorm.io/gen"
 	"gorm.io/gorm"
 	"sync"
 )
@@ -26,18 +25,4 @@ func ConnectDB() (conn *gorm.DB) {
 		panic(fmt.Errorf("cannot establish db connection: %w", err))
 	}
 	return conn
-}
-
-func GenerateRepo(relativePath string) {
-	g := gen.NewGenerator(gen.Config{
-		OutPath: relativePath,
-		Mode:    gen.WithDefaultQuery,
-	})
-
-	g.ApplyBasic(model.Passport{}, model.User{})
-
-	g.ApplyInterface(func(model.Method) {}, model.User{})
-	g.ApplyInterface(func(model.UserMethod) {}, model.User{})
-
-	g.Execute()
 }
