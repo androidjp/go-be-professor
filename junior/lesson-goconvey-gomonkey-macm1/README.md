@@ -1,4 +1,4 @@
-# gomonkey + goconvey 在MacOS M1 上成功debug 并运行成功
+# gomonkey + goconvey 在MacOS M1 上运行成功(仍未能解决debug问题，debug只有不加GOARCH=amd64才能debug成功，但是monkey就失效了)
 
 ## 具体步骤
 1. 安装以下两个依赖库：
