@@ -97,7 +97,7 @@ func (dag *DAG) DFS(root *Vertex) (map[string]bool, error) {
 
 	dependChain := make([]string, 0)
 
-	for i := 0; i < 10; i++ {
+	for {
 		if len(stack) == 0 {
 			fmt.Println("done")
 			break
