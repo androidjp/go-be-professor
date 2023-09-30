@@ -10,7 +10,7 @@ import (
 type WebSocketManager struct {
 	// ws upGrader
 	upGrader *websocket.Upgrader
-	// ws客户端管理
+	// ws客户端管理 -> map[*websocket.Conn]bool
 	wsClients sync.Map
 	// 客户端存活数量
 	aliveClientNum int64

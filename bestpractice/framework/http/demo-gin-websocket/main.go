@@ -2,9 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"net/http"
-	"sync"
 )
 
 type MyLogic struct {
@@ -36,23 +34,23 @@ func (lgc *MyLogic) WSHandle(c *gin.Context) {
 
 // 服务端实现
 func main() {
-	lgc := &MyLogic{Manager: &WebSocketManager{
-		upGrader: &websocket.Upgrader{
-			HandshakeTimeout: 0,
-			ReadBufferSize:   0,
-			WriteBufferSize:  0,
-			WriteBufferPool:  nil,
-			Subprotocols:     nil,
-			Error:            nil,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-			EnableCompression: false,
-		},
-		wsClients:        sync.Map{},
-		aliveClientNum:   0,
-		historyClientNum: 0,
-	}}
+	//lgc := &MyLogic{Manager: &WebSocketManager{
+	//	upGrader: &websocket.Upgrader{
+	//		HandshakeTimeout: 0,
+	//		ReadBufferSize:   0,
+	//		WriteBufferSize:  0,
+	//		WriteBufferPool:  nil,
+	//		Subprotocols:     nil,
+	//		Error:            nil,
+	//		CheckOrigin: func(r *http.Request) bool {
+	//			return true
+	//		},
+	//		EnableCompression: false,
+	//	},
+	//	wsClients:        sync.Map{},
+	//	aliveClientNum:   0,
+	//	historyClientNum: 0,
+	//}}
 
 	router := gin.Default()
 
@@ -63,7 +61,13 @@ func main() {
 	})
 
 	// 注册websocket路由
-	router.GET("/ws", lgc.WSHandle)
+	// v1版本
+	//router.GET("/ws", lgc.WSHandle)
+
+	// v2版本
+	hub := NewHub()
+	go hub.Run()
+	router.GET("/ws", hub.CreateWS)
 
 	// 启动应用
 	err := router.Run(":9999")
