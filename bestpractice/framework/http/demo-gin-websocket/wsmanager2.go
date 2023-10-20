@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
-	"net/http"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Client struct {
@@ -61,9 +61,19 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		upGrader: &websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
-			return true
-		}},
+		upGrader: &websocket.Upgrader{
+			HandshakeTimeout: 60 * time.Second,
+			ReadBufferSize:   256,
+			WriteBufferSize:  256,
+			WriteBufferPool:  nil,
+			Subprotocols:     nil,
+			Error:            nil,
+			//CheckOrigin: func(r *http.Request) bool {
+			//	return true
+			//},
+			CheckOrigin:       nil,
+			EnableCompression: false,
+		},
 		clients:          sync.Map{},
 		broadcast:        make(chan []byte),
 		register:         make(chan *Client),
