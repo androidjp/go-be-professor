@@ -1,4 +1,4 @@
-package singlepod
+package standalone
 
 import (
 	"container/list"

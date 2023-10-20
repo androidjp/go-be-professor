@@ -6,3 +6,7 @@
 ## 文档
 https://zhuanlan.zhihu.com/p/658079556
 
+## 参考资料
+https://github.com/HDT3213/godis
+https://github.com/xiaoxuxiansheng/xtimer
+https://github.com/xiaoxuxiansheng/timewheel/blob/main/time_wheel_test.go

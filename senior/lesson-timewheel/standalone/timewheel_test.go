@@ -1,4 +1,4 @@
-package singlepod_test
+package standalone_test
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,7 +9,7 @@ import (
 
 func TestTimeWheel_AddTask(t *testing.T) {
 	Convey("单机版时间轮测试用例", t, func() {
-		tw := singlepod.NewTimeWheel(10, 500*time.Millisecond)
+		tw := standalone.NewTimeWheel(10, 500*time.Millisecond)
 		defer tw.Stop()
 
 		tw.AddTask("test1", func() {
