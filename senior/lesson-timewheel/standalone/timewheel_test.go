@@ -2,7 +2,7 @@ package standalone_test
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
-	"lesson-timewheel/singlepod"
+	"lesson-timewheel/standalone"
 	"testing"
 	"time"
 )
