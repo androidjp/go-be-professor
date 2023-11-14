@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package proto.demo;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
+
+option go_package = ".;demo";
+
+message User {
+  string name = 1; // 姓名
+  uint32 age = 2; // 年龄
+  SexType sex = 3; // 性别
+  sint64 balance = 4; // 余额(sint64 表达负数是占用更小)
+  //@inject_tag: json:"lesson_source_map"
+  map<string, int64> lesson_source_map = 5; // 课程分数（具体的map）
+  repeated FriendInfo friends = 6; // 朋友列表
+  Location loc = 7; // 地址
+  bytes Sign = 8; // 座右铭
+  // oneof类型可以同时包含多个类型的字段，但是同时只能有一个字段被设置。在我们有多选一的需求时，oneof字段可强化这个行为，同时也能有节约内存的效果。
+  // oneof内的字段和上一层的字段属于同一级别，因此不能重名
+  //oneof内的字段不能用 Repeated 修饰
+  //oneof内同时只能有一个字段被设置。如果oneof字段被重复设置，则以最后设置的结果为准
+  oneof other_contact{
+    string qq = 9;
+    string wechat = 10;
+  }
+  google.protobuf.Struct attrs = 11; // 个人属性（单层结构体）
+  google.protobuf.Any extra = 12; // 额外信息（不固定的内容）
+
+
+  message FriendInfo {
+    string name = 1; // 朋友姓名
+  }
+}
+
+
+enum SexType {
+  Male = 0;
+  Female = 1;
+}
+
+
+message Location {
+  string country = 1; // 国家
+}
+
