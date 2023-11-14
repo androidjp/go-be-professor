@@ -1,0 +1,1 @@
+# Adapter层，适配各种框架及协议的接入，比如：Gin，tRPC，Echo，Fiber 等

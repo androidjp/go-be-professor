@@ -1,0 +1,1 @@
+处理请求，包括command和query
