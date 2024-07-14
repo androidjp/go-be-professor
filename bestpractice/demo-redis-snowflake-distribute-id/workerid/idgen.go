@@ -38,7 +38,7 @@ func init() {
 func NewWorkerIDGen() *IDGen {
 	// 链接redis 单节点
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:16379",
+		Addr:     "127.0.0.1:16379",
 		Password: "",
 		DB:       0,
 	})
@@ -112,6 +112,7 @@ func (g *IDGen) GenWorkerID() (int64, error) {
 		*/
 		redisKey := g.getWorkerRedisKey(workerID)
 		redisVal := g.getWorkerRedisValue(g.hostname, g.genTime)
+		fmt.Printf("workerID = %v, redisKey = %s, redisVal=%v\n", workerID, redisKey, redisVal)
 		ok, err := g.redisOperator.SetNX(ctx, redisKey, redisVal, WorkerCacheTTL).Result()
 		if err != nil {
 			fmt.Printf("GenWorkerId: fail to setnx key info to redis, error: %s\n", err.Error())
