@@ -72,6 +72,9 @@ func nanoID() {
 
 	customID, _ := gonanoid.Generate("abcde", 54)
 	fmt.Println("custom:", customID, ", length:", len(customID))
+
+	customID, _ = gonanoid.Generate("abcde", 10)
+	fmt.Println("custom2:", customID, ", length:", len(customID))
 }
 
 func snowflakeFunc() {
