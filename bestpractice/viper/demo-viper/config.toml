@@ -1,0 +1,26 @@
+[data]
+name = 'Jruing'
+newitem = 'test111'
+newitem2 = 'test222'
+numbers = [1, 2, 3, 4, 5, 6]
+prod = false
+
+[data.info]
+age = '30'
+name = 'John'
+
+[database]
+database = 'test'
+host = 'localhost'
+password = 'root'
+port = 3306
+user = 'root'
+
+[log]
+format = 'json'
+level = 'debug'
+path = '/var/log/app.log'
+
+[server]
+host = 'localhost'
+port = 8080
