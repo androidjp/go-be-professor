@@ -1,0 +1,9 @@
+autorate:
+  login_1:
+    refresh_interval_sec: 3
+    rate_step: 0.1
+    max_number: 20
+    min_number: 1
+    default_number: 10
+    avg_func_time_raise_max_ms: 800
+    avg_func_time_raise_min_ms: 500
