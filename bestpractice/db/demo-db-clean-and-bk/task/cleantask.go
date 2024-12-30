@@ -36,5 +36,9 @@ func (c *CleanTask) Run() {
 }
 
 func (c *CleanTask) Clean() {
+
+	// DB清理动作
+	c.r.DeleteOutdated()
+
 	fmt.Println("clean..........")
 }

@@ -1,0 +1,4 @@
+time="2023-07-16T19:35:52+08:00" level=info msg="load configuration from file" file=supervisord.conf
+time="2023-07-16T19:35:52+08:00" level=info msg="stop listening"
+time="2023-07-16T19:35:52+08:00" level=info msg="success to listen on address" addr="127.0.0.1:9001" protocol=tcp
+time="2023-07-16T19:35:55+08:00" level=debug msg="no auth required"

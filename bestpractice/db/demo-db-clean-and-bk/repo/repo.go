@@ -65,3 +65,11 @@ func (r *Repo) BatchRead() ([]*model.Student, error) {
 	}
 	return stus, nil
 }
+
+func (r *Repo) DeleteOutdated() error {
+	// 找到所有过期数据
+	res, err := r.db.ExecContext(context.Background(), "DELETE FROM student WHERE mtime <?", time.Now().Add(-time.Hour).Unix())
+
+	// 删除过期数据
+
+}
