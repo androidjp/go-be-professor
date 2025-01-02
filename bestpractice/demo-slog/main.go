@@ -58,6 +58,14 @@ func main() {
 	slog.Log(ctx, LevelTrace, "slog: Fatal 不可以打Tracing（-2）")
 	slog.InfoContext(ctx, "slog: Fatal 不可以打Info（0）")
 	slog.Log(ctx, LevelFatal, "slog: Fatal 可以打Fatal（12）")
+
+	// 使用不同的logger打印不同的逻辑
+	logger1 := NewCustomLevelLogger(slog.LevelInfo, LogTypeTEXT, true)
+	logger2 := NewCustomLevelLogger(slog.LevelError, LogTypeJSON, true)
+
+	logger1.Info("logger1: Hello, World!")
+	logger2.Error("logger2: Hello, World!")
+
 }
 
 const (
