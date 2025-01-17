@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package biz.errs;
+
+option go_package = "kdemo/biz/model/errs";
+
+ // 业务错误码
+message Biz {
+   // 这么定义是为了优化代码生成的枚举字段
+    enum Code {
+        // 成功
+        OK = 0;
+
+        // 99 未知的错误
+        UNKNOWN = 99;
+
+        //【101～199】不支持的资源类型
+        UNSUPPORTED_FORMAT = 101; // 不支持的内容格式
+        UNSUPPORTED_EXTRACT_MODEL = 102; // 不支持的提取模型
+        UNSUPPORTED_EXTRACT_TEMPLATE = 103; // 不支持的提取模板
+        UNSUPPORTED_STRATEGY = 104; // 不支持的提取策略
+
+        //【201～299】无效的链接
+        LINK_FORBIDDEN = 201; // 禁用的链接
+        LINK_UNAVAILABLE = 202; // 无法访问的链接
+
+        //【301～399】内容抓取问题
+        CONTENT_INSUFFICIENT = 301; // 内容不足
+        CONTENT_FETCH_TIMEOUT = 302; // 内容抓取超时
+        CONTENT_FETCH_FAILED = 303; // 抓取内容失败
+        CONTENT_BLOCKED = 304; // 被禁止抓取内容
+        CONTENT_SERIALIZE_FAILED = 305; // 内容序列化失败
+
+        //【401～499】下游服务问题
+        REMOTE_EXPORT_FAILED = 401; // 下游导出失败
+
+        //【501～599】内容抽取问题
+        EXTRACT_FAILED = 501; // 内容抽取失败
+        EXTRACT_INVALID_INPUT = 502; // 内容抽取输入无效
+        EXTRACT_DOWNLOAD_FAILED = 503; // 资源下载失败
+        EXTRACT_UPLOAD_FAILED = 504; // 资源上传失败
+
+        //【601～699】内容适配问题
+        ADAPT_FAILED = 601;
+    }
+}
