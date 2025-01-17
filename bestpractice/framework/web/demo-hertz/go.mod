@@ -1,8 +1,13 @@
 module hdemo
 
-go 1.21.12
+go 1.22.0
 
-require github.com/cloudwego/hertz v0.9.5
+toolchain go1.22.10
+
+require (
+	github.com/cloudwego/hertz v0.9.5
+	google.golang.org/protobuf v1.27.1
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.0 // indirect
@@ -21,5 +26,4 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 	golang.org/x/sys v0.24.0 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
 )

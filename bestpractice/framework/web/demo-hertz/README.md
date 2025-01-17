@@ -49,9 +49,18 @@ go install github.com/cloudwego/hertz/cmd/hz@latest
 ### 根据thrift文件生成代码
 https://www.cloudwego.io/zh/docs/hertz/tutorials/toolkit/usage-thrift/
 
+
 ### 根据pb文件生成代码
 https://www.cloudwego.io/zh/docs/hertz/tutorials/toolkit/usage-protobuf/
 
+执行语句：
+```shell
+# 强制新建（看有没有.hz）
+hz new -I idl -idl idl/hdemo/hdemoapi.proto --force
+
+# 更新
+hz update -I idl -idl idl/hdemo/hdemoapi.proto
+```
 
 
 
