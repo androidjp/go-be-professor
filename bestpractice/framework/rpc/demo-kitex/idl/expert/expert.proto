@@ -3,25 +3,31 @@ syntax = "proto3";
 package api.expert;
 
 import "google/protobuf/any.proto";
-
+import "idl/errs/biz_code.proto";
 option go_package = "/api/expert";
 
 // 【AI】专家模块
 service ExpertService {
     // 问题搜索
-    rpc QuestionSearch(QuestionSearchReqBody) returns (QuestionSearchRes) {
-        option (api.post) = "/expert/question/search";
-    }
+    rpc QuestionSearch(QuestionSearchReqBody) returns (QuestionSearchRes);
     // Hello
-    rpc Hello(HelloReqBody) returns (HelloRes) {
-        option (api.get) = "/expert/hello";
-    }
+    rpc Hello(HelloReqBody) returns (HelloRes);
 }
 
-// 抓取网页来采集数据请求信息
-message CrawlReqBody {
+message HelloReqBody {
+    // 名字
+    string name = 1;
+}
+
+message HelloRes {
+    // 欢迎信息
+    string message = 1;
+}
+
+// 问题搜索请求信息
+message QuestionSearchReqBody {
     // 要抓取的 URI 资源
-    string url = 1 [(api.body) = "url"];
+    string url = 1;
 
     // 要执行请求的类型枚举值
     enum Request {
@@ -42,7 +48,7 @@ message CrawlReqBody {
     // ?要执行请求的类型，默认值是 http
     string request = 2;
     // ?提炼可读性内容，仅支持 return_format=plain 的场景，默认值是 false
-    bool readability = 3 [(api.body) = "readability"];
+    bool readability = 3;
 
     // 返回结果内容的格式枚举值
     enum ReturnFormat {
@@ -77,8 +83,8 @@ message CrawlReqBody {
     bool nocache = 11;
 }
 
-// 抓取网页来采集数据返回信息
-message CrawlRes {
+// 问题搜索返回信息
+message QuestionSearchRes {
     // 抓取结果信息列表
     repeated CrawlResInfo res_infos = 1;
     // 抓取总数量
@@ -87,18 +93,6 @@ message CrawlRes {
     int64 success_urls = 3;
     // 抓取失败的数量
     int64 failure_urls = 4;
-}
-
-message CrawlFieldsReqBody {
-    // 要抓取的 URI 资源
-    string url = 1 [(api.body) = "url,required"];
-    // ?要执行请求的类型，默认值是 http
-    string request = 2;
-}
-
-message CrawlFieldsRes {
-    // 抓取结果信息列表
-    repeated CrawlFieldsResInfo res_infos = 1;
 }
 
 // 抓取结果信息
@@ -145,98 +139,4 @@ message CrawlResInfo {
     Metadata metadata = 7;
     // ?抓取资源返回的状态码
     int64 status = 8;
-}
-
-// 抓取字段结果信息
-message CrawlFieldsResInfo {
-    // 请求 URI 资源返回的状态码
-    biz.errs.Biz.Code code = 1;
-    // ?请求 URI 资源失败的错误信息
-    string msg = 2;
-    // 要抓取的 URI 资源 
-    string url = 3;
-    // 字段分类
-    string category = 4;
-    // 字段内容
-    google.protobuf.Any fields_info = 5 [json_name = "fields_info"];
-}
-
-// 抓取字段结果信息 - 小红书分类
-// See https://365.kdocs.cn/l/clilXweLArcj.
-message XhsFieldsInfo {
-    message User {
-        // 用户ID
-        string id = 1;
-        // 用户昵称
-        string nickname = 2;
-        // 用户头像
-        string avatar = 3;
-    }
-
-    // 笔记连接
-    string link = 1;
-    // 查询时间
-    int64 time = 2;
-    // 用户信息
-    User user = 3;
-    // 笔记标题
-    string title = 4;
-    // 笔记内容
-    string desc = 5;
-    // 话题
-    repeated string topics = 6;
-    // 最后更新时间
-    int64 last_update_time = 7 [json_name="last_update_time"];
-    // IP地址
-    string ip_location = 8 [json_name="ip_location"];
-    // 点赞数
-    string liked_count = 9 [json_name="liked_count"];
-    // 收藏数
-    string collected_count = 10 [json_name="collected_count"];
-    // 评论数
-    string comment_count = 11 [json_name="comment_count"];
-
-
-}
-
-// 文本相似度计算请求信息
-message SimiliarityReqBody {
-    // 要比较的文本内容
-    string text1 = 1 [(api.body) = "text1,required"];
-    // 要比较的文本内容
-    string text2 = 2 [(api.body) = "text2,required"];
-}
-
-// 文本相似度计算返回信息
-message SimiliarityRes {
-    // 相似性指数（0 至 1 之间）
-    float index = 1;
-}
-
-
-// 自定义抓取请求
-message CustomExtractReqBody {
-    // 要抓取的 URI 资源 
-    string url = 1;
-    // 要执行请求的类型，默认值是 http
-    string request = 2;
-}
-
-// 自定义抓取返回
-message CustomExtractRes {
-    // 抓取结果信息列表
-    repeated CustomExtractResInfo res_infos = 1;
-}
-
-
-// 自定义抓取返回
-message CustomExtractResInfo {
-    // 请求 URI 资源返回的状态码
-    biz.errs.Biz.Code code = 1;
-    // ?请求 URI 资源失败的错误信息
-    string msg = 2;
-    // 要抓取的 URI 资源 
-    string url = 3;
-    // 字段内容
-    google.protobuf.Any res = 5 [json_name = "res"];
 }

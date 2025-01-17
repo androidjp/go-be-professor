@@ -1,8 +1,8 @@
 syntax = "proto3";
 
 package biz.errs;
-
-option go_package = "kdemo/biz/model/errs";
+// 这个时候，生成的 go 文件会放到 biz/model/errs 目录下
+option go_package = "biz/model/errs";
 
  // 业务错误码
 message Biz {

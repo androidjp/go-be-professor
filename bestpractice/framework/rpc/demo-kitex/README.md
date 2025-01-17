@@ -55,3 +55,63 @@ go get github.com/cloudwego/kitex
     ```
 
 
+## proto生成
+
+### errs/biz_code.proto
+首先，确保安装了 protoc-gen-go 插件，可以使用以下命令安装：
+```bash
+go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+```
+然后，使用 protoc 命令生成 Go 代码：
+
+
+执行命令，得到`biz/model/errs/biz_code.pb.go`:
+```shell
+protoc --go_out=. idl/errs/biz_code.proto
+```
+
+### expert.proto生成
+执行命令：
+```bash
+kitex -module kdemo idl/expert/expert.proto
+```
+
+执行后，在当前目录下会生成一个名为 kitex_gen 目录，内容如下：
+```
+kitex_gen/
+├── base					// base.thrift 的生成内容，没有 go namespace 时，以 idl 文件名小写作为包名
+│   ├── base.go				// thriftgo 生成，包含 base.thrift 定义的内容的 go 代码
+│   ├── k-base.go			// kitex 生成，包含 kitex 提供的额外序列化优化实现
+│   └── k-consts.go			// 避免 import not used 的占位符文件
+└── test					// example.thrift 的生成内容，用 go namespace 为包名
+    ├── example.go			// thriftgo 生成，包含 example.thrift 定义的内容的 go 代码
+    ├── k-consts.go			// 避免 import not used 的占位符文件
+    ├── k-example.go		// kitex 生成，包含 kitex 提供的额外序列化优化实现
+    └── myservice			// kitex 为 example.thrift 里定义的 myservice 生成的代码
+        ├── client.go		// 提供了 NewClient API
+        ├── invoker.go		// 提供了 Server SDK 化的 API
+        ├── myservice.go	// 提供了 client.go 和 server.go 共用的一些定义
+        └── server.go		// 提供了 NewServer API
+```
+
+### 生成带有脚手架的代码
+上文的案例代码并不能直接运行，需要自己完成 NewClient 和 NewServer 的构建。kitex 命令行工具提供了 `-service` 参数能直接生成带有脚手架的代码，执行如下命令：
+
+```bash
+kitex -module kdemo -service kdemosrv idl/expert/expert.proto
+```
+
+生成结果如下：
+```
+├── build.sh			// 快速构建服务的脚本
+├── handler.go		    // 为 server 生成 handler 脚手架
+├── kitex_info.yaml  	// 记录元信息，用于与 cwgo 工具的集成
+├── main.go		 	 // 快速启动 server 的主函数
+└── script			 // 构建服务相关脚本
+│    └── bootstrap.sh
+├── kitex_gen
+     └── ....
+```
+
+在 handler.go 的接口中填充业务代码后，执行 main.go 的主函数即可快速启动 Kitex Server。
+
