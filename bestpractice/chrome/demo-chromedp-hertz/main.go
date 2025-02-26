@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
+	"flag"
 	"log"
 	"math"
+	"os"
 	"time"
 
 	"github.com/chromedp/cdproto/emulation"
@@ -12,20 +13,22 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+var captureURL = flag.String("url", `https://news.qq.com/`, "default is `https://news.qq.com/`")
+
 func main() {
-	
-	// 禁用chrome headless
+	flag.Parse()
+
 	opts := append(
 		chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.NoDefaultBrowserCheck, //不检查默认浏览器
-		chromedp.Flag("headless", true),
-		chromedp.Flag("blink-settings", "imagesEnabled=true"), //开启图像界面,重点是开启这个
+		chromedp.NoDefaultBrowserCheck,                        //不检查默认浏览器
+		chromedp.Flag("headless", true),                       // 不弹出UI界面
+		chromedp.Flag("blink-settings", "imagesEnabled=true"), // 加载图片，保证整个完成页面的展示
 		chromedp.Flag("ignore-certificate-errors", true),      //忽略错误
 		chromedp.Flag("disable-web-security", true),           //禁用网络安全标志
-		chromedp.Flag("disable-extensions", true),             //开启插件支持
+		chromedp.Flag("disable-extensions", true),             //关闭插件支持
 		chromedp.Flag("disable-default-apps", true),
-		chromedp.WindowSize(1920, 1080),    // 设置浏览器分辨率（窗口大小）
-		chromedp.Flag("disable-gpu", true), //开启gpu渲染
+		chromedp.WindowSize(1080, 1920),    // 设置浏览器分辨率（窗口大小）--手机窗口尺寸
+		chromedp.Flag("disable-gpu", true), // 禁用 GPU加速功能。
 		chromedp.Flag("hide-scrollbars", true),
 		chromedp.Flag("mute-audio", true),
 		chromedp.Flag("no-sandbox", true),
@@ -50,10 +53,10 @@ func main() {
 	//导航到目标页面，等待一个元素，捕捉元素的截图
 	var buf []byte
 	// capture entire browser viewport, returning png with quality=90
-	if err := chromedp.Run(ctx, fullScreenshot(`https://news.qq.com/`, 100, &buf)); err != nil {
+	if err := chromedp.Run(ctx, fullScreenshot(*captureURL, 100, &buf)); err != nil {
 		log.Fatal(err)
 	}
-	if err := ioutil.WriteFile("./Screenshot.png", buf, 0644); err != nil {
+	if err := os.WriteFile("./Screenshot.png", buf, 0644); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("图片写入完成")
@@ -105,4 +108,3 @@ func fullScreenshot(urlstr string, quality int64, res *[]byte) chromedp.Tasks {
 		}),
 	}
 }
-
