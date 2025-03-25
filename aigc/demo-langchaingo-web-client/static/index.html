@@ -70,6 +70,36 @@
             color: #333;
         }
 
+        /* 添加 markdown 样式支持 */
+        .message-content pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .message-content code {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .message-content p {
+            margin-bottom: 10px;
+        }
+
+        .message-content ul, .message-content ol {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 10px;
+            margin: 10px 0;
+            color: #666;
+        }
         .avatar {
             width: 36px;
             height: 36px;
@@ -153,7 +183,7 @@
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
-            messageContent.textContent = content;
+            messageContent.innerHTML = isUser ? content : marked.parse(content);
 
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(messageContent);
@@ -165,29 +195,23 @@
             const question = userInput.value.trim();
             if (!question) return;
 
-            // 禁用输入和按钮
             userInput.disabled = true;
             sendButton.disabled = true;
 
-            // 显示用户消息
             addMessage(question, true);
-
-            // 清空输入框
             userInput.value = '';
 
-            // 创建一个新的消息元素用于显示AI的回复
             const aiMessageDiv = document.createElement('div');
             aiMessageDiv.className = 'message assistant';
             const aiAvatar = document.createElement('div');
             aiAvatar.className = 'avatar';
-            aiAvatar.textContent = 'A';
+            aiAvatar.textContent = '灵犀';
             const aiContent = document.createElement('div');
             aiContent.className = 'message-content';
             aiMessageDiv.appendChild(aiAvatar);
             aiMessageDiv.appendChild(aiContent);
             messageContainer.appendChild(aiMessageDiv);
 
-            // 发送请求到后端API
             fetch('/api/chat', {
                 method: 'POST',
                 headers: {
@@ -205,15 +229,23 @@
                         if (line.startsWith('data: ')) {
                             const data = line.slice(6);
                             if (data === '[DONE]') {
-                                // 启用输入和按钮
                                 userInput.disabled = false;
                                 sendButton.disabled = false;
                                 userInput.focus();
+                                const htmlContent = marked.parse(aiContent.textContent);
+                                aiContent.innerHTML = htmlContent;
+
+                                const needConfirmData = response.headers.get('need_confirm_data');
+                                if (needConfirmData) {
+                                    try {
+                                        const decodedData = JSON.parse(decodeURIComponent(escape(atob(needConfirmData))));
+                                        renderOptions(decodedData);
+                                    } catch (e) {
+                                        console.error('Failed to parse need_confirm_data:', e);
+                                    }
+                                }
                                 return;
                             }
-
-                            // 为了 markdown 渲染，处理换行符
-
                             aiContent.textContent += data;
                             messageContainer.scrollTop = messageContainer.scrollHeight;
                         }
@@ -226,11 +258,7 @@
                             if (buffer) {
                                 processText(buffer);
                             }
-
-                            // 尝试处理 markdown 格式的文本
-                            // 使用 marked.js 渲染
                             const htmlContent = marked.parse(aiContent.textContent);
-                            // 将渲染后的 HTML 写回 div
                             aiContent.innerHTML = htmlContent;
                             return;
                         }
@@ -250,10 +278,206 @@
             }).catch(error => {
                 console.error('Error:', error);
                 aiContent.textContent = '抱歉，发生了错误，请重试。';
-                // 启用输入和按钮
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
+            });
+        }
+
+        function renderOptions(decodedData) {
+            const optionsContainer = document.createElement('div');
+            optionsContainer.style.marginTop = '10px';
+            optionsContainer.style.padding = '10px';
+            optionsContainer.style.backgroundColor = '#f8f8f8';
+            optionsContainer.style.borderRadius = '8px';
+            optionsContainer.style.marginBottom = '30px'; // 增加下间距
+
+            const promptText = document.createElement('div');
+            promptText.textContent = '另外，还需要与您进一步确认以下信息：';
+            promptText.style.marginBottom = '15px';
+            promptText.style.fontWeight = 'bold';
+            optionsContainer.appendChild(promptText);
+
+            decodedData.forEach((item, index) => {
+                const groupContainer = document.createElement('div');
+                groupContainer.style.marginBottom = '15px';
+
+                const title = document.createElement('div');
+                title.textContent = item.desc;
+                title.style.fontWeight = 'bold';
+                title.style.marginBottom = '8px';
+                groupContainer.appendChild(title);
+
+                item.vals.forEach((val, valIndex) => {
+                    const optionContainer = document.createElement('div');
+                    optionContainer.style.marginBottom = '5px';
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = item.key;
+                    radio.value = val.val;
+                    radio.id = `${item.key}_${valIndex}`;
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `${item.key}_${valIndex}`;
+                    label.textContent = val.val;
+                    label.style.marginLeft = '8px';
+
+                    optionContainer.appendChild(radio);
+                    optionContainer.appendChild(label);
+                    groupContainer.appendChild(optionContainer);
+                });
+
+                const customInputContainer = document.createElement('div');
+                customInputContainer.style.marginTop = '10px';
+
+                const customLabel = document.createElement('label');
+                customLabel.textContent = '您可以自行输入您的回答';
+                customLabel.style.display = 'block';
+                customLabel.style.marginBottom = '5px';
+
+                const customInput = document.createElement('input');
+                customInput.type = 'text';
+                customInput.name = `${item.key}_custom`;
+                customInput.style.width = '100%';
+                customInput.style.padding = '8px';
+                customInput.style.borderRadius = '4px';
+                customInput.style.border = '1px solid #ddd';
+
+                customInputContainer.appendChild(customLabel);
+                customInputContainer.appendChild(customInput);
+                groupContainer.appendChild(customInputContainer);
+
+                optionsContainer.appendChild(groupContainer);
+            });
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '确认';
+            confirmButton.style.marginTop = '20px';
+            confirmButton.style.padding = '10px 20px';
+            confirmButton.style.backgroundColor = '#ccc';
+            confirmButton.style.color = 'white';
+            confirmButton.style.border = 'none';
+            confirmButton.style.borderRadius = '8px';
+            confirmButton.style.cursor = 'not-allowed';
+            confirmButton.disabled = true;
+
+            optionsContainer.appendChild(confirmButton);
+
+            function checkOptions() {
+                let allFilled = true;
+                decodedData.forEach(item => {
+                    const radios = document.querySelectorAll(`input[name="${item.key}"]`);
+                    const customInput = document.querySelector(`input[name="${item.key}_custom"]`);
+                    const radioChecked = Array.from(radios).some(radio => radio.checked);
+                    const customFilled = customInput.value.trim() !== '';
+                    if (!radioChecked && !customFilled) {
+                        allFilled = false;
+                    }
+                });
+                confirmButton.disabled = !allFilled;
+                confirmButton.style.backgroundColor = allFilled ? '#007AFF' : '#ccc';
+                confirmButton.style.cursor = allFilled ? 'pointer' : 'not-allowed';
+            }
+
+            optionsContainer.addEventListener('change', checkOptions);
+            optionsContainer.addEventListener('input', checkOptions);
+
+            confirmButton.addEventListener('click', () => {
+                const confirmedData = decodedData.map(item => {
+                    const radios = document.querySelectorAll(`input[name="${item.key}"]`);
+                    const customInput = document.querySelector(`input[name="${item.key}_custom"]`);
+                    let selectedVal = Array.from(radios).find(radio => radio.checked)?.value || customInput.value.trim();
+                    return {
+                        key: item.key,
+                        vals: [{ val: selectedVal }]
+                    };
+                });
+
+                const requestBody = {
+                    confirmed: confirmedData
+                };
+
+                sendConfirmRequest(requestBody);
+            });
+
+            messageContainer.appendChild(optionsContainer);
+            optionsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sendConfirmRequest(requestBody) {
+            fetch('/api/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                const confirmMessageDiv = document.createElement('div');
+                confirmMessageDiv.className = 'message assistant';
+                const confirmAvatar = document.createElement('div');
+                confirmAvatar.className = 'avatar';
+                confirmAvatar.textContent = '灵犀';
+                const confirmContent = document.createElement('div');
+                confirmContent.className = 'message-content';
+                confirmMessageDiv.appendChild(confirmAvatar);
+                confirmMessageDiv.appendChild(confirmContent);
+                messageContainer.appendChild(confirmMessageDiv);
+
+                function processText(text) {
+                    const lines = text.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                const htmlContent = marked.parse(confirmContent.textContent);
+                                confirmContent.innerHTML = htmlContent;
+
+                                // 检查响应头中是否存在 need_confirm_data
+                                const needConfirmData = response.headers.get('need_confirm_data');
+                                if (needConfirmData) {
+                                    try {
+                                        const decodedData = JSON.parse(decodeURIComponent(escape(atob(needConfirmData))));
+                                        renderOptions(decodedData);
+                                    } catch (e) {
+                                        console.error('Failed to parse need_confirm_data:', e);
+                                    }
+                                }
+                                return;
+                            }
+                            confirmContent.textContent += data;
+                            messageContainer.scrollTop = messageContainer.scrollHeight;
+                        }
+                    }
+                }
+
+                function readStream() {
+                    return reader.read().then(({done, value}) => {
+                        if (done) {
+                            if (buffer) {
+                                processText(buffer);
+                            }
+                            return;
+                        }
+
+                        buffer += decoder.decode(value, {stream: true});
+                        const lines = buffer.split('\n\n');
+                        buffer = lines.pop();
+                        for (const line of lines) {
+                            processText(line);
+                        }
+
+                        return readStream();
+                    });
+                }
+
+                return readStream();
+            }).catch(error => {
+                console.error('确认请求错误:', error);
             });
         }
 
