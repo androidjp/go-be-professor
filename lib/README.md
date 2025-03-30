@@ -1,13 +1,5 @@
 # lib
 
-云文档服务组的共用library仓库，希望整个云文档服务端团队引用一个统一的基础库，此基础库应当封装团队内部的通用能力，包括：用户登录鉴权、云文档处理等可以给多个微服务复用的能力，结合idl库中的各类定义，可提供统一能力。
-
-## go拉取
-```shell
-GOPROXY=https://mirrors.wps.cn/go/ go get gopkg.in/redis.v5@v5.0.0-wps
-```
-
-
 ## slogger目录
 
 ### 定义
@@ -138,7 +130,6 @@ slogger.AddCtxReadKeyStruct(lg, CtxReqID, "request_id")
 ctx := context.WithValue(context.Background(), CtxReqID, "123456")
 
 lg.InfoContext(ctx, "slog: Hello, World!")
-// {"time":"2025-01-14T17:47:05.714083+08:00","level":"INFO","source":{"function":"mylib/slogger.TestAddCtxReadKeyStruct.func1.1","file":"/Users/wujunpeng/projects/company_code/clouddocsrv_series/office_clouddoc_srv/lib/slogger/slogger_test.go","line":260},"msg":"slog: Hello, World!","request_id":"123456"}
 ```
 
 slogger.AddCtxReadKeyString
@@ -155,7 +146,6 @@ ctx := context.WithValue(context.Background(), "x_id", "bbbb")
 ctx = context.WithValue(ctx, "request_id", "123456")
 
 lg.InfoContext(ctx, "slog: Hello, World!")
-// {"time":"2025-01-14T17:45:56.557238+08:00","level":"INFO","source":{"function":"mylib/slogger.TestAddCtxReadKeyString.func1.1","file":"/Users/wujunpeng/projects/company_code/clouddocsrv_series/office_clouddoc_srv/lib/slogger/slogger_test.go","line":294},"msg":"slog: Hello, World!","request_id":"123456","x_id":"bbbb"}
 ```
 
 
