@@ -1,31 +1,21 @@
-package main
+package localidgen
 
 import (
 	"crypto/md5"
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/bwmarrin/snowflake"
 	"github.com/gofrs/uuid"
-	"github.com/lithammer/shortuuid/v4"
+	"github.com/lithammer/shortuuid"
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/oklog/ulid"
 	"github.com/rs/xid"
 	"github.com/segmentio/ksuid"
-	"math/rand"
-	"time"
 )
 
-func main() {
-	//---------------------------------------
-	// 本地ID生成器
-	//---------------------------------------
-	fmt.Println("--------------------------------------")
-	fmt.Println("本地ID生成器")
-	fmt.Println("--------------------------------------")
-	localIDGenerator()
-
-}
-
-func localIDGenerator() {
+func LocalIDGenerator() {
 	fmt.Println("--------------------------------------")
 	fmt.Println(`---UUID的 v1版本：采用时间 和 mac地址的算法。`)
 	uuidV1()
@@ -52,11 +42,9 @@ func localIDGenerator() {
 
 	fmt.Println("--------------------------------------")
 	fmt.Println(`---snowflake雪花算法(开源)，长度：19`)
-	fmt.Println(`
-+--------------------------------------------------------------------------+
+	fmt.Println(`+--------------------------------------------------------------------------+
 | 1 Bit Unused | 41 Bit Timestamp |  10 Bit NodeID  |   12 Bit Sequence ID |
-+--------------------------------------------------------------------------+
-`)
++--------------------------------------------------------------------------+`)
 	fmt.Println("默认每毫秒生成4096个ID")
 	snowflakeFunc()
 

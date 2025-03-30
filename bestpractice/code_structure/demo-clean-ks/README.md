@@ -18,7 +18,7 @@
 │       │   ├── app.json.template
 │       │   ├── app.yaml
 │       │   ├── app.yaml.template
-│       │   └── go-klion-dev+default+application.properties
+│       │   └── mylib-dev+default+application.properties
 │       ├── log
 │       │   └── faceshareapp.log
 │       └── main.go

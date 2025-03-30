@@ -1,0 +1,7 @@
+slogger:
+  level: "WARN"
+  format: "JSON"
+  showSource: true
+  ctxReadType: 0
+  ctxReadKeys:
+  - trace_id

@@ -1,0 +1,36 @@
+apollo:
+  enable: false
+  unmarshalType: "json" # default json, option: json, yaml
+  appCfg:
+    appId: "mylib-v0.3.0"
+    cluster: "default"
+    defaultNamespace: "application.properties" # 非必填，不填为默认application，填了以填的为准作为默ns
+    subscribeNamespaceNames: ["test.json"]  # 订阅监听的配置文件，订阅了才可以在config指定获取配置项
+    ip: "http://10.160.12.32:8080"
+    cacheDir: ""
+    accessKeySecret: ""
+    insecureSkipVerify: false
+    isSkipLocalCache: true
+
+env:
+  enable: true
+  prefixes: ["KLION22_"]
+
+test:
+  bool: true
+  string: "mylib"
+  int: -123
+  uint: 123
+  float64: 123.23
+  stringSlice: ["a", "b"]
+  mapStr:
+    a: "b"
+  strMap:
+    a: 123
+  mapStrSlice:
+    a: ["a", "b"]
+
+KLION22_TEST_KEY: "xxxxxx"
+
+
+

@@ -1,0 +1,164 @@
+logger:
+  logName: "mylib"
+  logPath: "./log"
+  logLevel : "info"
+  logFormatter : "json"
+  maxSizeMB: 100
+  maxBackups: 10
+  maxAgeDay: 7
+  isStdOut: true
+  ctxKeys: []
+
+appInfos:
+  serviceName: "mylib"
+  version: "0.1.0"
+
+source:
+  type: "local"
+
+debug:
+  enable: true
+  pprof: 
+    enable: true
+  metric:
+    enable: true
+    metricPath: "/metrics"
+    enablePush: false
+    push:
+      pushGatewayURL:  "http://127.0.0.1:9091" #"http://172.18.131.49:9091"
+      jobName: "mylib-push" # option: default "mylib-push
+      pushIntervalTime: 5s # option: default 10s
+      # groupName: "group" # option: default not group
+      # groupValue: "value" # option: default not group
+      # basicAuthUser: "user" # option: http basic auth user, default disable
+      # basicAuthPwd: "user" # option: http basic auth pwd, default disable
+
+apollo:
+  enable: true
+  unmarshalType: "json" # default json, option: json, yaml
+  appCfg:
+    appId: "mylib-v0.3.0"
+    cluster: "default"
+    defaultNamespace: "application.properties" # 非必填，不填为默认application，填了以填的为准作为默ns
+    subscribeNamespaceNames: ["test.json"]  # 订阅监听的配置文件，订阅了才可以在config指定获取配置项
+    ip: "http://10.160.12.32:8080"
+    cacheDir: ""
+    accessKeySecret: ""
+    insecureSkipVerify: false
+    isSkipLocalCache: true
+
+tracing:
+  enable: false
+  serviceName: "mylib"
+  sampler:
+    type: "const"
+    param: 0.5
+    samplingRefreshInterval: 5s
+  reporter:
+    #localAgentHostPort: "localhost:6831"
+    collectorEndpoint: "http://127.0.0.1:14268/api/traces" # 直接上报到collector的地址，和local_agent_host_port二选一
+    logSpans: true  # 是否开启本地日志打印，用于本地调试用，生产要关掉
+    queueSize: 100  # 进程buffer保存span的个数，批量上报
+
+http:
+  enable: true
+  frameType: "gin"
+  host: "0.0.0.0"
+  port: 8098
+  mode: "debug"
+  middlewares:
+    - "recover"
+    - "prometheus"
+    - "apm"
+grpc:
+  enable: true
+  host: "0.0.0.0"
+  port: 8088
+  network: "tcp4"
+  unaryInterceptors:
+    - "prometheus"
+    - "apm"
+  streamInterceptors:
+    - "prometheus"
+    - "apm"
+
+registry:
+  enable: false
+  enableEncrypt: false
+  type: "etcd"
+  addrs: ["127.0.0.1:2379"]
+  registryPrefix: "/logic"
+  discoveryPrefix: "/logic" # 支持通配符：*，发现所有的服务
+  requestTimeout: 5s
+  heartBeatInterval: 3s
+  registerTTL: 10s
+  #username: "" # 可选参数
+  #password: "" # 可选参数
+
+kms:
+  # 仅供测试，非生产配置
+  enable: true
+  enableSegmentProtect: false # 开启分端保护密钥，开启后，配置文件的appkey只是其中一段密钥，默认关闭
+  appID: "KMS20200817HFFCTM"
+  appKey: "16d001b7ab25796fd07e27a28fcf8339"
+  kmsHost: "kms.wps.cn"
+  # keyID: "814d0149-0691-ff29-3daa-637a6deb3efd"，新版本keyid不暴露在配置文件
+
+mongo:
+  enable: false
+  enableEncrypt: false
+  hosts: ["127.0.0.1:3444"]
+  replicaSet: "dsds"
+  databaseName: "db1"
+  username: "klion"
+  password: "dsdsad"
+  enableTracing: false
+  maxPoolSize: 10
+  minPoolSize: 5
+  connectTimeout: 10s
+  serverSelectionTimeout: 10s
+  maxConnIdleTime: 10s
+  socketTimeout: 10s
+  # BaseRepo opts
+  operationMaxRetries: 3
+  operationMinRetryBackOff: 1s
+  operationMaxRetryBackOff: 5s
+
+redis:
+  enable: true
+  clientType: "sample"
+  enableEncrypt: false
+  enableTracing: false
+  addrs: [""]
+  masterName: ""
+  dbNum: 0
+  username: ""
+  password: ""
+
+clickhouse:
+  enable: false
+  enableEncrypt: false
+  addr: [""]
+  username: ""
+  password: ""
+  dialTimeout: 1s
+  maxOpenConns: 10
+  maxIdleConns: 5
+
+ks3:
+  enable: false
+  enableEncrypt: false
+  ak: "test"
+  sk: "test"
+  endPoint: ks3-cn-beijing.ksyun.com
+  bucket: "test"
+  enableTracing: true
+  disableSSL: false
+
+client:
+  rest:
+    enable: false
+    enableTracing: false
+    retryWaitMin: 1s
+    retryWaitMax: 30s
+    retryMax: 4
