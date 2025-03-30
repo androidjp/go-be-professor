@@ -3,11 +3,13 @@ module mylib
 go 1.23.7
 
 require (
+	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/bytedance/sonic v1.13.2
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/fatih/color v1.18.0
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/matoous/go-nanoid/v2 v2.1.0
@@ -17,6 +19,7 @@ require (
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/philchia/agollo/v4 v4.1.5
 	github.com/redis/go-redis/v9 v9.7.3
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.6.0
 	github.com/segmentio/ksuid v1.0.4
 	github.com/smartystreets/goconvey v1.8.1
@@ -39,6 +42,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/gomodule/redigo v1.9.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
