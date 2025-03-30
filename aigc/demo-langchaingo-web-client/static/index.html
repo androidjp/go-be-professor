@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 聊天助手</title>
+    <!-- 适用于大多数浏览器的.ico 图标 -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: 0 12px;
+        }
+
+        .user .message-content {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .assistant .message-content {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        /* 添加 markdown 样式支持 */
+        .message-content pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .message-content code {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .message-content p {
+            margin-bottom: 10px;
+        }
+
+        .message-content ul, .message-content ol {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 10px;
+            margin: 10px 0;
+            color: #666;
+        }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user .avatar {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            height: 50px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .chat-input button {
+            padding: 0 24px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+
+        .chat-input button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>AI 聊天助手</h2>
+        </div>
+        <div class="chat-messages" id="messageContainer"></div>
+        <div class="chat-input">
+            <textarea id="userInput" placeholder="请输入您的问题..."></textarea>
+            <button id="sendButton">发送</button>
+        </div>
+    </div>
+    <!-- 使用 marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const messageContainer = document.getElementById('messageContainer');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? 'U' : 'A';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = isUser ? content : marked.parse(content);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messageContainer.appendChild(messageDiv);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const question = userInput.value.trim();
+            if (!question) return;
+
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            addMessage(question, true);
+            userInput.value = '';
+
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message assistant';
+            const aiAvatar = document.createElement('div');
+            aiAvatar.className = 'avatar';
+            aiAvatar.textContent = '灵犀';
+            const aiContent = document.createElement('div');
+            aiContent.className = 'message-content';
+            aiMessageDiv.appendChild(aiAvatar);
+            aiMessageDiv.appendChild(aiContent);
+            messageContainer.appendChild(aiMessageDiv);
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question })
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                function processText(text) {
+                    const lines = text.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                userInput.disabled = false;
+                                sendButton.disabled = false;
+                                userInput.focus();
+                                const htmlContent = marked.parse(aiContent.textContent);
+                                aiContent.innerHTML = htmlContent;
+
+                                const needConfirmData = response.headers.get('need_confirm_data');
+                                if (needConfirmData) {
+                                    try {
+                                        const decodedData = JSON.parse(decodeURIComponent(escape(atob(needConfirmData))));
+                                        renderOptions(decodedData);
+                                    } catch (e) {
+                                        console.error('Failed to parse need_confirm_data:', e);
+                                    }
+                                }
+                                return;
+                            }
+                            aiContent.textContent += data;
+                            messageContainer.scrollTop = messageContainer.scrollHeight;
+                        }
+                    }
+                }
+
+                function readStream() {
+                    return reader.read().then(({done, value}) => {
+                        if (done) {
+                            if (buffer) {
+                                processText(buffer);
+                            }
+                            const htmlContent = marked.parse(aiContent.textContent);
+                            aiContent.innerHTML = htmlContent;
+                            return;
+                        }
+
+                        buffer += decoder.decode(value, {stream: true});
+                        const lines = buffer.split('\n\n');
+                        buffer = lines.pop();
+                        for (const line of lines) {
+                            processText(line);
+                        }
+
+                        return readStream();
+                    });
+                }
+
+                return readStream();
+            }).catch(error => {
+                console.error('Error:', error);
+                aiContent.textContent = '抱歉，发生了错误，请重试。';
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+            });
+        }
+
+        function renderOptions(decodedData) {
+            const optionsContainer = document.createElement('div');
+            optionsContainer.style.marginTop = '10px';
+            optionsContainer.style.padding = '10px';
+            optionsContainer.style.backgroundColor = '#f8f8f8';
+            optionsContainer.style.borderRadius = '8px';
+            optionsContainer.style.marginBottom = '30px'; // 增加下间距
+
+            const promptText = document.createElement('div');
+            promptText.textContent = '另外，还需要与您进一步确认以下信息：';
+            promptText.style.marginBottom = '15px';
+            promptText.style.fontWeight = 'bold';
+            optionsContainer.appendChild(promptText);
+
+            decodedData.forEach((item, index) => {
+                const groupContainer = document.createElement('div');
+                groupContainer.style.marginBottom = '15px';
+
+                const title = document.createElement('div');
+                title.textContent = item.desc;
+                title.style.fontWeight = 'bold';
+                title.style.marginBottom = '8px';
+                groupContainer.appendChild(title);
+
+                item.vals.forEach((val, valIndex) => {
+                    const optionContainer = document.createElement('div');
+                    optionContainer.style.marginBottom = '5px';
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = item.key;
+                    radio.value = val.val;
+                    radio.id = `${item.key}_${valIndex}`;
+
+                    const label = document.createElement('label');
+                    label.htmlFor = `${item.key}_${valIndex}`;
+                    label.textContent = val.val;
+                    label.style.marginLeft = '8px';
+
+                    optionContainer.appendChild(radio);
+                    optionContainer.appendChild(label);
+                    groupContainer.appendChild(optionContainer);
+                });
+
+                const customInputContainer = document.createElement('div');
+                customInputContainer.style.marginTop = '10px';
+
+                const customLabel = document.createElement('label');
+                customLabel.textContent = '您可以自行输入您的回答';
+                customLabel.style.display = 'block';
+                customLabel.style.marginBottom = '5px';
+
+                const customInput = document.createElement('input');
+                customInput.type = 'text';
+                customInput.name = `${item.key}_custom`;
+                customInput.style.width = '100%';
+                customInput.style.padding = '8px';
+                customInput.style.borderRadius = '4px';
+                customInput.style.border = '1px solid #ddd';
+
+                customInputContainer.appendChild(customLabel);
+                customInputContainer.appendChild(customInput);
+                groupContainer.appendChild(customInputContainer);
+
+                optionsContainer.appendChild(groupContainer);
+            });
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '确认';
+            confirmButton.style.marginTop = '20px';
+            confirmButton.style.padding = '10px 20px';
+            confirmButton.style.backgroundColor = '#ccc';
+            confirmButton.style.color = 'white';
+            confirmButton.style.border = 'none';
+            confirmButton.style.borderRadius = '8px';
+            confirmButton.style.cursor = 'not-allowed';
+            confirmButton.disabled = true;
+
+            optionsContainer.appendChild(confirmButton);
+
+            function checkOptions() {
+                let allFilled = true;
+                decodedData.forEach(item => {
+                    const radios = document.querySelectorAll(`input[name="${item.key}"]`);
+                    const customInput = document.querySelector(`input[name="${item.key}_custom"]`);
+                    const radioChecked = Array.from(radios).some(radio => radio.checked);
+                    const customFilled = customInput.value.trim() !== '';
+                    if (!radioChecked && !customFilled) {
+                        allFilled = false;
+                    }
+                });
+                confirmButton.disabled = !allFilled;
+                confirmButton.style.backgroundColor = allFilled ? '#007AFF' : '#ccc';
+                confirmButton.style.cursor = allFilled ? 'pointer' : 'not-allowed';
+            }
+
+            optionsContainer.addEventListener('change', checkOptions);
+            optionsContainer.addEventListener('input', checkOptions);
+
+            confirmButton.addEventListener('click', () => {
+                const confirmedData = decodedData.map(item => {
+                    const radios = document.querySelectorAll(`input[name="${item.key}"]`);
+                    const customInput = document.querySelector(`input[name="${item.key}_custom"]`);
+                    let selectedVal = Array.from(radios).find(radio => radio.checked)?.value || customInput.value.trim();
+                    return {
+                        key: item.key,
+                        vals: [{ val: selectedVal }]
+                    };
+                });
+
+                const requestBody = {
+                    confirmed: confirmedData
+                };
+
+                sendConfirmRequest(requestBody);
+            });
+
+            messageContainer.appendChild(optionsContainer);
+            optionsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sendConfirmRequest(requestBody) {
+            fetch('/api/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                const confirmMessageDiv = document.createElement('div');
+                confirmMessageDiv.className = 'message assistant';
+                const confirmAvatar = document.createElement('div');
+                confirmAvatar.className = 'avatar';
+                confirmAvatar.textContent = '灵犀';
+                const confirmContent = document.createElement('div');
+                confirmContent.className = 'message-content';
+                confirmMessageDiv.appendChild(confirmAvatar);
+                confirmMessageDiv.appendChild(confirmContent);
+                messageContainer.appendChild(confirmMessageDiv);
+
+                function processText(text) {
+                    const lines = text.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                const htmlContent = marked.parse(confirmContent.textContent);
+                                confirmContent.innerHTML = htmlContent;
+
+                                // 检查响应头中是否存在 need_confirm_data
+                                const needConfirmData = response.headers.get('need_confirm_data');
+                                if (needConfirmData) {
+                                    try {
+                                        const decodedData = JSON.parse(decodeURIComponent(escape(atob(needConfirmData))));
+                                        renderOptions(decodedData);
+                                    } catch (e) {
+                                        console.error('Failed to parse need_confirm_data:', e);
+                                    }
+                                }
+                                return;
+                            }
+                            confirmContent.textContent += data;
+                            messageContainer.scrollTop = messageContainer.scrollHeight;
+                        }
+                    }
+                }
+
+                function readStream() {
+                    return reader.read().then(({done, value}) => {
+                        if (done) {
+                            if (buffer) {
+                                processText(buffer);
+                            }
+                            return;
+                        }
+
+                        buffer += decoder.decode(value, {stream: true});
+                        const lines = buffer.split('\n\n');
+                        buffer = lines.pop();
+                        for (const line of lines) {
+                            processText(line);
+                        }
+
+                        return readStream();
+                    });
+                }
+
+                return readStream();
+            }).catch(error => {
+                console.error('确认请求错误:', error);
+            });
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

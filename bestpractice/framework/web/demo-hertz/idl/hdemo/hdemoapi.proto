@@ -1,0 +1,25 @@
+// idl/hdemo/hdemoapi.proto
+syntax = "proto3";
+
+package hdemo;
+
+option go_package = "hdemo/hdemoapi";
+
+import "api.proto";
+
+message HDemoAPIReq {
+   string Name = 1[(api.query)="name"];
+}
+
+message HDemoAPIResp {
+   string RespBody = 1;
+}
+
+service HDemoAPIService {
+   rpc Method1(HDemoAPIReq) returns(HDemoAPIResp) {
+      option (api.get) = "/hello";
+   }
+   rpc Method3(HDemoAPIReq) returns(HDemoAPIResp) {
+      option (api.get) = "/hello3";
+   }
+}

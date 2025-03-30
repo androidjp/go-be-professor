@@ -1,0 +1,58 @@
+{
+    "code": 0,
+    "msg": "ok",
+    "data": {
+        "expert_ctx": {
+            "session_id": "55555",
+            "srv_req_id": "请求唯一ID"
+        },
+        "output_strategy": {
+            "mode": 0,
+            "with_title": true,
+            "content_format": "segment/page"
+        },
+       "retrieved_result": [
+            {
+                "title": "旅行计划"
+            }
+        ],
+        "need_confirm": [
+        {
+            "key": "sleep_days",
+            "desc": "居住天数",
+            "choice_type": 0,
+            "vals": [
+                {
+                    "val": "5天"
+                },
+                {
+                    "val": "3天"
+                }
+            ]
+        },
+        {
+            "key": "budge_from",
+            "desc": "旅游总预算的下限",
+            "choice_type": 0,
+            "vals": [
+                {
+                    "val": "无下限"
+                },
+                {
+                    "val": "2000元"
+                }
+            ]
+        },
+        {
+            "key": "budge_to",
+            "desc": "旅游总预算的上限",
+            "choice_type": 0,
+            "vals": [
+                {
+                    "val": "10000元"
+                }
+            ]
+        }
+    ]
+    }
+}

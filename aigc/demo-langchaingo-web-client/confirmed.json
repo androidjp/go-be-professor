@@ -1,0 +1,38 @@
+{
+    "query": {
+        "raw": "",
+        "class": ""
+    },
+    "cli_ctx": {
+            "user_id": "用户ID"
+    },
+    "expert_ctx": {
+        "session_id": "55555"
+    },
+    "confirmed": [
+        {
+            "key": "sleep_days",
+            "vals": [
+                {
+                    "val": "5天"
+                }
+            ]
+        },
+        {
+            "key": "budge_from",
+            "vals": [
+                {
+                    "val": "2000元"
+                }
+            ]
+        },
+        {
+            "key": "budge_to",
+            "vals": [
+                {
+                    "val": "10000元"
+                }
+            ]
+        }
+    ]
+}
