@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>面试题问答</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cyber-blue': '#00f0ff',
+                        'cyber-purple': '#9933ff',
+                        'cyber-pink': '#ff00aa',
+                        'cyber-green': '#00ff9d',
+                        'dark': '#0f1117',
+                        'darker': '#070a10',
+                        'terminal': '#0c0c0c',
+                        'terminal-text': '#33ff33'
+                    },
+                    fontFamily: {
+                        'code': ['Fira Code', 'monospace'],
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .cyber-border {
+            position: relative;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #00f0ff;
+            border-left: 2px solid #00f0ff;
+        }
+        .cyber-border::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #00f0ff;
+            border-right: 2px solid #00f0ff;
+        }
+    </style>
+</head>
+<body class="bg-dark min-h-screen font-sans text-gray-200" x-data="askApp()">
+    <!-- 说明悬浮模块 -->
+    <div class="fixed left-6 top-28 z-50 w-80 bg-darker cyber-border rounded-xl shadow-lg p-6 text-left text-white font-code text-sm" style="max-width:90vw;">
+        <h2 class="text-lg font-bold text-cyber-blue mb-2 flex items-center"><i class="fas fa-info-circle mr-2"></i>说明</h2>
+        <div class="mb-2 text-cyber-green font-bold">得分取值规则：</div>
+        <ul class="list-disc pl-5 space-y-1">
+            <li><span class="text-cyber-green font-bold">4分：</span>回答完全与问题对应，理论知识或结论正确，内容精炼且高质量。</li>
+            <li><span class="text-cyber-green font-bold">3分：</span>回答与问题相关，理论知识或结论正确，但内容不够精炼或高质量。</li>
+            <li><span class="text-cyber-green font-bold">2分：</span>回答与问题相关，但理论知识或结论错误。</li>
+            <li><span class="text-cyber-green font-bold">1分：</span>回答与问题无关，但理论知识或结论正确。</li>
+            <li><span class="text-cyber-green font-bold">0分：</span>回答与问题无关，且理论知识或结论错误。</li>
+        </ul>
+    </div>
+    <!-- 顶部导航栏 -->
+    <nav class="bg-darker text-white shadow-lg border-b border-cyber-blue/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-md bg-terminal flex items-center justify-center mr-3">
+                        <i class="fas fa-microchip text-cyber-blue text-xl glow"></i>
+                    </div>
+                    <h1 class="text-xl font-bold font-code text-cyber-blue glow">面试<span class="text-white">题问答</span></h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- 知识领域输入 -->
+                    <input type="text" x-model="domainInput" placeholder="我希望面试的知识领域..." class="px-4 py-2 bg-terminal border-0 cyber-border text-cyber-green rounded-lg font-code focus:ring-2 focus:ring-cyber-blue focus:border-transparent w-56">
+                    <button @click="applyDomain" class="px-4 py-2 bg-cyber-blue text-dark font-bold rounded-lg shadow hover:bg-cyber-green transition-colors font-code">采用此领域</button>
+                    <button @click="downloadRecord" class="px-4 py-2 bg-cyber-purple text-white font-bold rounded-lg shadow hover:bg-cyber-pink transition-colors font-code">结束并下载记录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- 主体内容区域 -->
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-darker rounded-xl cyber-border p-8 mt-8 text-center">
+            <h2 class="text-3xl font-bold font-code text-cyber-blue mb-4">面试题问答</h2>
+            <p class="text-gray-400 font-code mb-6">填写知识领域后点击"采用此领域"生成面试题，答题后点击"提交"获取下一个问题。下载考试记录会清空历史。</p>
+            <!-- 当前问题展示区 -->
+            <template x-if="currentQuestion">
+                <div class="bg-terminal cyber-border rounded-lg p-6 text-left mx-auto max-w-2xl">
+                    <div class="flex items-center mb-2">
+                        <span class="bg-cyber-blue text-dark text-xs font-bold px-2 py-1 rounded font-code mr-2" x-text="currentQuestion.category"></span>
+                        <span class="text-xs text-cyber-purple font-code" x-text="currentQuestion.difficulty"></span>
+                    </div>
+                    <div class="font-code text-cyber-green text-base mb-2" x-text="currentQuestion.question"></div>
+                    <textarea x-model="answerInput" rows="3" placeholder="请输入你的答案..." class="w-full px-4 py-2 bg-darker border-0 cyber-border text-cyber-green rounded-lg focus:ring-2 focus:ring-cyber-blue focus:border-transparent font-code"></textarea>
+                    <button @click="submitAnswer" class="mt-6 px-8 py-3 bg-cyber-green text-dark font-bold rounded-lg shadow hover:bg-cyber-blue transition-colors font-code">提交</button>
+                </div>
+            </template>
+            <div x-show="!currentQuestion && !examSubmitted" class="text-cyber-green font-code text-lg mt-8">请先填写知识领域并点击"采用此领域"生成题目</div>
+            <div x-show="examSubmitted" class="mt-8 text-cyber-green font-code text-lg">考试已结束！你可以下载考试记录。</div>
+            <!-- 答题分析结果展示区 -->
+            <div class="max-w-2xl mx-auto mt-12 bg-terminal cyber-border rounded-lg p-6" x-show="history.length > 0">
+                <h3 class="text-xl font-bold text-cyber-purple mb-4 font-code flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i> 答题分析
+                </h3>
+                <template x-for="(h, i) in history.slice(-1)" :key="i">
+                    <div class="mb-2 grid grid-cols-1 gap-4">
+                        <!-- 提问 -->
+                        <div class="flex flex-col items-start">
+                            <span class="bg-cyber-blue text-dark text-xs font-bold px-2 py-1 rounded font-code inline-block text-left">提问</span>
+                            <div class="bg-darker p-3 mt-1 rounded cyber-border font-code text-white text-sm text-left">
+                                <span x-text="h.question.question || '暂无'"></span>
+                            </div>
+                        </div>
+                        <!-- 我的回答 -->
+                        <div class="flex flex-col items-start">
+                            <span class="bg-cyber-green text-dark text-xs font-bold px-2 py-1 rounded font-code inline-block text-left">我的回答</span>
+                            <div class="bg-darker p-3 mt-1 rounded cyber-border font-code text-white text-sm text-left">
+                                <span x-text="h.answer || '暂无'"></span>
+                            </div>
+                        </div>
+                        <!-- 得分 -->
+                        <div class="flex flex-col items-start">
+                            <span class="bg-cyber-green text-dark text-xs font-bold px-2 py-1 rounded font-code inline-block text-left">得分</span>
+                            <div class="bg-darker p-3 mt-1 rounded cyber-border font-code text-white text-sm text-left" x-text="h.score"></div>
+                        </div>
+                        <!-- 得分依据 -->
+                        <div class="flex flex-col items-start">
+                            <span class="bg-cyber-blue text-dark text-xs font-bold px-2 py-1 rounded font-code inline-block text-left">得分依据</span>
+                            <div class="bg-darker p-3 mt-1 rounded cyber-border font-code text-white text-sm text-left">
+                                <span x-text="h.score_reason || '暂无'"></span>
+                            </div>
+                        </div>
+                        <!-- 参考答案 -->
+                        <div class="flex flex-col items-start">
+                            <span class="bg-cyber-purple text-white text-xs font-bold px-2 py-1 rounded font-code inline-block text-left">参考答案</span>
+                            <div class="bg-darker p-3 mt-1 rounded cyber-border font-code text-white text-sm text-left">
+                                <span x-show="h.reference_answer && h.reference_answer !== '暂无'">
+                                    <span x-html="marked.parse(h.reference_answer)"></span>
+                                </span>
+                                <span x-show="!h.reference_answer || h.reference_answer === '暂无'">暂无</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </main>
+    <script>
+        function askApp() {
+            return {
+                domainInput: '',
+                domain: '',
+                currentQuestion: null,
+                answerInput: '',
+                examSubmitted: false,
+                history: [], // {question, answer, score}
+                // 采用知识领域并生成首题
+                async applyDomain() {
+                    if (!this.domainInput.trim()) {
+                        alert('请填写知识领域');
+                        return;
+                    }
+                    this.domain = this.domainInput.trim();
+                    this.examSubmitted = false;
+                    this.history = [];
+                    this.answerInput = '';
+                    // 调用后端生成首题
+                    try {
+                        const res = await fetch('/api/v1/gen_question', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ domain: this.domain })
+                        });
+                        if (!res.ok) throw new Error('生成题目失败');
+                        this.currentQuestion = await res.json();
+                        this.answerInput = '';
+                    } catch (e) {
+                        alert('生成题目失败');
+                        this.currentQuestion = null;
+                    }
+                },
+                // 提交答案并获取下一个问题
+                async submitAnswer() {
+                    if (!this.answerInput.trim()) {
+                        alert('请填写答案');
+                        return;
+                    }
+                    // 调用后端分析得分并生成下一个问题
+                    try {
+                        const res = await fetch('/api/v1/answer_and_next', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                domain: this.domain,
+                                question: this.currentQuestion,
+                                answer: this.answerInput
+                            })
+                        });
+                        if (!res.ok) throw new Error('提交失败');
+                        const data = await res.json();
+                        // 记录历史
+                        this.history.push({
+                            question: this.currentQuestion,
+                            answer: this.answerInput,
+                            score: data.score,
+                            score_reason: data.score_reason || '暂无',
+                            reference_answer: data.reference_answer || '暂无'
+                        });
+                        // 刷新下一个问题
+                        if (data.next_question) {
+                            this.currentQuestion = data.next_question;
+                            this.answerInput = '';
+                        } else {
+                            // 没有下一个问题时，继续让用户答题（即currentQuestion不变），直到用户主动结束
+                            this.answerInput = '';
+                        }
+                    } catch (e) {
+                        alert('提交失败');
+                    }
+                },
+                // 下载并重置
+                downloadRecord() {
+                    if (this.history.length === 0) {
+                        alert('暂无考试记录');
+                        return;
+                    }
+                    // 保存为json array
+                    const content = JSON.stringify(this.history, null, 2);
+                    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `考试记录_${new Date().toLocaleDateString()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    // 重置
+                    this.currentQuestion = null;
+                    this.answerInput = '';
+                    this.examSubmitted = false;
+                    this.history = [];
+                    this.domainInput = '';
+                    this.domain = '';
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

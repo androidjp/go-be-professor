@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI面试题生成器 - 智能招聘助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cyber-blue': '#00f0ff',
+                        'cyber-purple': '#9933ff',
+                        'cyber-pink': '#ff00aa',
+                        'cyber-green': '#00ff9d',
+                        'dark': '#0f1117',
+                        'darker': '#070a10',
+                        'terminal': '#0c0c0c',
+                        'terminal-text': '#33ff33'
+                    },
+                    fontFamily: {
+                        'code': ['Fira Code', 'monospace'],
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #00f0ff 0%, #9933ff 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+        .upload-area {
+            border: 2px dashed #2d3748;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #00f0ff;
+            background-color: rgba(0, 240, 255, 0.05);
+        }
+        .upload-area.dragover {
+            border-color: #00f0ff;
+            background-color: rgba(0, 240, 255, 0.1);
+        }
+        .terminal-text {
+            color: #33ff33;
+            font-family: 'Fira Code', monospace;
+        }
+        .terminal-window {
+            background-color: #0c0c0c;
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .terminal-header {
+            background-color: #333;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+        }
+        .terminal-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .terminal-body {
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            color: #33ff33;
+        }
+        .code-block {
+            position: relative;
+            background-color: #1a1a1a;
+            border-radius: 6px;
+            border-left: 3px solid #00f0ff;
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+        }
+        .code-header {
+            background-color: #333;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        .code-content {
+            padding: 12px;
+            color: #f8f8f2;
+        }
+        .code-line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 12px 8px;
+            background-color: #252525;
+            color: #666;
+            text-align: right;
+            user-select: none;
+        }
+        .matrix-bg {
+            background-color: #000;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="0" y="10" fill="rgba(0,255,0,0.1)" font-family="monospace">10101</text><text x="30" y="30" fill="rgba(0,255,0,0.1)" font-family="monospace">01010</text><text x="10" y="50" fill="rgba(0,255,0,0.1)" font-family="monospace">10101</text><text x="40" y="70" fill="rgba(0,255,0,0.1)" font-family="monospace">01010</text><text x="20" y="90" fill="rgba(0,255,0,0.1)" font-family="monospace">10101</text></svg>');
+        }
+        .glow {
+            text-shadow: 0 0 10px currentColor;
+        }
+        .cyber-border {
+            position: relative;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #00f0ff;
+            border-left: 2px solid #00f0ff;
+        }
+        .cyber-border::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #00f0ff;
+            border-right: 2px solid #00f0ff;
+        }
+    </style>
+</head>
+<body class="bg-dark min-h-screen font-sans text-gray-200" x-data="interviewApp()">
+    <!-- 导航栏 -->
+    <nav class="bg-darker text-white shadow-lg border-b border-cyber-blue/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-md bg-terminal flex items-center justify-center mr-3">
+                        <i class="fas fa-microchip text-cyber-blue text-xl glow"></i>
+                    </div>
+                    <h1 class="text-xl font-bold font-code text-cyber-blue glow">AI<span class="text-white">面试题生成器</span></h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#" class="font-code hover:text-cyber-blue transition-colors">首页</a>
+                    <a href="#" class="font-code hover:text-cyber-blue transition-colors">功能介绍</a>
+                    <a href="#" class="font-code hover:text-cyber-blue transition-colors">联系我们</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 欢迎区域 -->
+        <div class="text-center mb-12">
+            <div class="relative h-72 rounded-xl overflow-hidden mb-8 cyber-border">
+                <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                     alt="面试场景" class="w-full h-full object-cover brightness-75">
+                <div class="absolute inset-0 matrix-bg bg-opacity-40 flex items-center justify-center">
+                    <div class="text-white text-center px-6 py-8 rounded-lg bg-darker bg-opacity-70 cyber-border">
+                        <div class="terminal-header mb-2">
+                            <div class="terminal-circle bg-red-500"></div>
+                            <div class="terminal-circle bg-yellow-500"></div>
+                            <div class="terminal-circle bg-green-500"></div>
+                            <div class="ml-4 text-xs text-gray-400 font-code">interview_generator.sh</div>
+                        </div>
+                        <h2 class="text-4xl font-bold mb-4 font-code"><span class="text-cyber-blue glow">智能</span><span class="text-cyber-green">面试题</span><span class="text-cyber-purple">生成</span></h2>
+                        <p class="text-xl font-code terminal-text">$ <span class="typing-animation">上传简历 | 输入岗位要求 | AI生成专业面试题</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能步骤指引 -->
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+            <div class="bg-darker p-6 rounded-lg cyber-border">
+                <div class="code-header mb-4 flex items-center">
+                    <div class="w-12 h-12 bg-terminal rounded-md flex items-center justify-center mr-3">
+                        <i class="fas fa-upload text-cyber-blue text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-code">step_01.js</div>
+                        <h3 class="text-lg font-semibold font-code text-cyber-blue">上传简历</h3>
+                    </div>
+                </div>
+                <div class="code-block p-3">
+                    <pre class="text-xs text-gray-300 font-code"><span class="text-cyber-pink">function</span> <span class="text-cyber-green">uploadResume</span>() {
+  <span class="text-cyber-purple">return</span> pdf.upload(<span class="text-yellow-300">"resume.pdf"</span>);
+}</pre>
+                </div>
+                <p class="text-gray-400 mt-3 text-sm">支持PDF格式简历文件上传</p>
+            </div>
+            <div class="bg-darker p-6 rounded-lg cyber-border">
+                <div class="code-header mb-4 flex items-center">
+                    <div class="w-12 h-12 bg-terminal rounded-md flex items-center justify-center mr-3">
+                        <i class="fas fa-edit text-cyber-green text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-code">step_02.js</div>
+                        <h3 class="text-lg font-semibold font-code text-cyber-green">填写岗位</h3>
+                    </div>
+                </div>
+                <div class="code-block p-3">
+                    <pre class="text-xs text-gray-300 font-code"><span class="text-cyber-pink">function</span> <span class="text-cyber-green">setJobDetails</span>() {
+  <span class="text-cyber-purple">return</span> job.describe(<span class="text-yellow-300">"requirements"</span>);
+}</pre>
+                </div>
+                <p class="text-gray-400 mt-3 text-sm">详细描述目标岗位要求</p>
+            </div>
+            <div class="bg-darker p-6 rounded-lg cyber-border">
+                <div class="code-header mb-4 flex items-center">
+                    <div class="w-12 h-12 bg-terminal rounded-md flex items-center justify-center mr-3">
+                        <i class="fas fa-magic text-cyber-purple text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 font-code">step_03.js</div>
+                        <h3 class="text-lg font-semibold font-code text-cyber-purple">生成面试题</h3>
+                    </div>
+                </div>
+                <div class="code-block p-3">
+                    <pre class="text-xs text-gray-300 font-code"><span class="text-cyber-pink">async function</span> <span class="text-cyber-green">generateQuestions</span>() {
+  <span class="text-cyber-purple">return await</span> ai.analyze(resume, job);
+}</pre>
+                </div>
+                <p class="text-gray-400 mt-3 text-sm">AI智能分析生成专业面试题</p>
+            </div>
+        </div>
+
+        <!-- 主要操作区域 -->
+        <div class="flex flex-col gap-8 mb-12">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- 左侧：简历上传 -->
+                <div class="flex-1 bg-darker rounded-xl cyber-border p-6">
+                    <div class="terminal-header mb-4 flex items-center">
+                        <div class="terminal-circle bg-red-500"></div>
+                        <div class="terminal-circle bg-yellow-500"></div>
+                        <div class="terminal-circle bg-green-500"></div>
+                        <div class="ml-4 text-xs text-gray-400 font-code">upload.sh</div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center font-code text-cyber-blue">
+                        <i class="fas fa-file-pdf text-cyber-red mr-2"></i>
+                        $ ./upload_resume.sh
+                    </h3>
+                    <div class="upload-area rounded-lg p-8 text-center cursor-pointer bg-terminal cyber-border" 
+                         @click="$refs.fileInput.click()"
+                         @dragover.prevent="dragover = true"
+                         @dragleave.prevent="dragover = false"
+                         @drop.prevent="handleFileDrop($event)"
+                         :class="{'border-cyber-blue': dragover}">
+                        <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" 
+                               accept=".pdf" class="hidden">
+                        <div x-show="!uploadedFile">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-cyber-blue mb-4"></i>
+                            <pre class="text-lg font-medium text-cyber-green mb-2 font-code">cat > resume.pdf</pre>
+                            <pre class="text-sm text-gray-400 font-code">// 支持PDF格式，最大10MB</pre>
+                        </div>
+                        <div x-show="uploadedFile" class="text-cyber-green">
+                            <i class="fas fa-check-circle text-4xl mb-4"></i>
+                            <pre class="text-lg font-medium font-code" x-text="'FILE: ' + uploadedFile?.name"></pre>
+                            <pre class="text-sm font-code">[SUCCESS] 文件上传成功</pre>
+                        </div>
+                    </div>
+                </div>
+                <!-- 右侧：岗位信息输入 -->
+                <div class="flex-1 bg-darker rounded-xl cyber-border p-6">
+                    <div class="terminal-header mb-4 flex items-center">
+                        <div class="terminal-circle bg-red-500"></div>
+                        <div class="terminal-circle bg-yellow-500"></div>
+                        <div class="terminal-circle bg-green-500"></div>
+                        <div class="ml-4 text-xs text-gray-400 font-code">job_config.json</div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4 flex items-center font-code text-cyber-green">
+                        <i class="fas fa-briefcase text-cyber-blue mr-2"></i>
+                        $ vim job_config.json
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-cyber-blue mb-2 font-code">"job_title": </label>
+                            <input type="text" x-model="jobTitle" 
+                                   placeholder="例如：前端开发工程师"
+                                   class="w-full px-4 py-2 bg-terminal border-0 cyber-border text-cyber-green rounded-lg focus:ring-2 focus:ring-cyber-blue focus:border-transparent font-code">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-cyber-blue mb-2 font-code">"company_name": </label>
+                            <input type="text" x-model="companyName" 
+                                   placeholder="例如：阿里巴巴"
+                                   class="w-full px-4 py-2 bg-terminal border-0 cyber-border text-cyber-green rounded-lg focus:ring-2 focus:ring-cyber-blue focus:border-transparent font-code">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-cyber-blue mb-2 font-code">"requirements": </label>
+                            <textarea x-model="jobRequirements" rows="6" 
+                                      placeholder="请详细描述岗位要求，包括技能要求、工作经验、学历要求等..."
+                                      class="w-full px-4 py-2 bg-terminal border-0 cyber-border text-cyber-green rounded-lg focus:ring-2 focus:ring-cyber-blue focus:border-transparent resize-none font-code"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 生成按钮 -->
+            <div class="terminal-command-block bg-terminal p-3 rounded-lg cyber-border mt-6 max-w-2xl mx-auto">
+                <div class="font-code text-gray-400 mb-2">$ ./generate_questions.sh</div>
+                <button @click="generateQuestions()" 
+                        :disabled="!canGenerate" 
+                        :class="canGenerate ? 'bg-darker hover:bg-terminal border-cyber-green' : 'bg-darker opacity-50 border-gray-600 cursor-not-allowed'"
+                        class="w-full py-4 text-cyber-green font-semibold rounded-lg transition-all duration-300 flex items-center justify-center cyber-border font-code">
+                    <i class="fas fa-terminal mr-2"></i>
+                    <span x-show="!isGenerating">EXECUTE</span>
+                    <span x-show="isGenerating" class="flex items-center">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                        PROCESSING...
+                    </span>
+                </button>
+            </div>
+        </div>
+        <!-- 面试题集合展示区域 -->
+        <div class="bg-darker rounded-xl cyber-border p-6 mt-8">
+            <div class="terminal-header mb-4 flex items-center">
+                <div class="terminal-circle bg-red-500"></div>
+                <div class="terminal-circle bg-yellow-500"></div>
+                <div class="terminal-circle bg-green-500"></div>
+                <div class="ml-4 text-xs text-gray-400 font-code">questions_output.json</div>
+            </div>
+            <h3 class="text-xl font-semibold mb-4 flex items-center font-code text-cyber-purple">
+                <i class="fas fa-question-circle text-cyber-purple mr-2"></i>
+                $ cat questions_output.json
+            </h3>
+            <!-- 空状态 -->
+            <div x-show="questions.length === 0 && !isGenerating" class="text-center py-12 bg-terminal rounded-lg cyber-border p-6">
+                <div class="w-32 h-32 mx-auto mb-4 cyber-border rounded-full overflow-hidden matrix-bg relative">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" 
+                         alt="等待生成" class="w-full h-full object-cover opacity-50">
+                </div>
+                <pre class="text-cyber-blue text-lg font-code">STATUS: WAITING FOR INPUT</pre>
+                <pre class="text-gray-400 text-sm mt-2 font-code">// 请上传简历并填写岗位信息</pre>
+            </div>
+            <!-- 加载状态 -->
+            <div x-show="isGenerating" class="text-center py-12 bg-terminal rounded-lg cyber-border p-6">
+                <div class="animate-spin w-12 h-12 border-4 border-cyber-blue border-t-transparent rounded-full mx-auto mb-4"></div>
+                <pre class="text-cyber-green font-code">ANALYZING DATA...</pre>
+                <pre class="text-gray-400 text-sm mt-2 font-code">// AI正在分析简历和岗位要求</pre>
+            </div>
+            <!-- 面试题列表 -->
+            <div x-show="questions.length > 0" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                <template x-for="(question, index) in questions" :key="index">
+                    <div class="bg-terminal cyber-border rounded-lg p-4 hover:border-cyber-blue transition-all">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="bg-darker text-cyber-blue text-xs font-medium px-2 py-1 rounded font-code" 
+                                  x-text="question.category"></span>
+                            <span class="text-xs text-gray-400 font-code" x-text="question.difficulty"></span>
+                        </div>
+                        <pre class="font-medium text-cyber-green mb-2 font-code text-sm whitespace-pre-wrap" x-text="(index + 1) + '. ' + question.question"></pre>
+                        <div x-show="question.showAnswer" class="bg-darker p-3 rounded mt-2 cyber-border border-cyber-purple">
+                            <pre class="text-sm text-cyber-yellow font-code whitespace-pre-wrap" x-text="question.answer"></pre>
+                        </div>
+                        <button @click="question.showAnswer = !question.showAnswer" 
+                                class="text-cyber-purple text-sm hover:text-cyber-blue mt-2 font-code flex items-center">
+                            <i class="fas fa-terminal mr-1"></i>
+                            <span x-text="question.showAnswer ? '> hide_answer()' : '> show_answer()'" ></span>
+                        </button>
+                    </div>
+                </template>
+            </div>
+            <!-- 操作按钮 -->
+            <div x-show="questions.length > 0" class="mt-6 flex space-x-3">
+                <button @click="exportQuestions()" 
+                        class="flex-1 bg-darker hover:bg-terminal text-cyber-green py-2 px-4 rounded-lg transition-colors cyber-border border-cyber-green font-code">
+                    <i class="fas fa-download mr-2"></i>
+                    EXPORT
+                </button>
+                <button @click="regenerateQuestions()" 
+                        class="flex-1 bg-darker hover:bg-terminal text-cyber-purple py-2 px-4 rounded-lg transition-colors cyber-border border-cyber-purple font-code">
+                    <i class="fas fa-redo mr-2"></i>
+                    REGENERATE
+                </button>
+            </div>
+        </div>
+        <!-- END 面试题集合展示区域 -->
+
+        <!-- 特色功能介绍 -->
+        <div class="bg-darker rounded-xl shadow-md overflow-hidden mb-12 cyber-border">
+            <div class="px-6 py-4 bg-terminal border-b border-gray-700">
+                <div class="terminal-header mb-2">
+                    <div class="terminal-circle bg-red-500"></div>
+                    <div class="terminal-circle bg-yellow-500"></div>
+                    <div class="terminal-circle bg-green-500"></div>
+                    <div class="ml-4 text-xs text-gray-400 font-code">features.json</div>
+                </div>
+                <h3 class="text-lg font-semibold font-code text-cyber-blue">$ cat features.json</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="flex bg-terminal p-4 rounded-lg cyber-border">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-dark text-cyber-blue cyber-border">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-medium mb-2 font-code text-cyber-blue">AI智能分析</h4>
+                            <pre class="text-gray-300 text-sm font-code">{
+  "type": "feature",
+  "description": "基于简历和岗位要求，智能生成针对性面试题"
+}</pre>
+                        </div>
+                    </div>
+                    <div class="flex bg-terminal p-4 rounded-lg cyber-border">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-dark text-cyber-green cyber-border">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-medium mb-2 font-code text-cyber-green">精准匹配</h4>
+                            <pre class="text-gray-300 text-sm font-code">{
+  "type": "feature",
+  "description": "根据候选人技能和经验，生成针对性问题"
+}</pre>
+                        </div>
+                    </div>
+                    <div class="flex bg-terminal p-4 rounded-lg cyber-border">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-dark text-cyber-purple cyber-border">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-medium mb-2 font-code text-cyber-purple">参考答案</h4>
+                            <pre class="text-gray-300 text-sm font-code">{
+  "type": "feature",
+  "description": "提供专业参考答案，帮助评估候选人回答质量"
+}</pre>
+                        </div>
+                    </div>
+                    <div class="flex bg-terminal p-4 rounded-lg cyber-border">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-md bg-dark text-cyber-yellow cyber-border">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-lg font-medium mb-2 font-code text-cyber-yellow">一键导出</h4>
+                            <pre class="text-gray-300 text-sm font-code">{
+  "type": "feature",
+  "description": "支持导出面试题和答案，方便面试官使用和分享"
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-terminal text-gray-300 py-8 border-t-2 border-cyber-blue">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="terminal-header mb-2">
+                        <div class="terminal-circle bg-red-500"></div>
+                        <div class="terminal-circle bg-yellow-500"></div>
+                        <div class="terminal-circle bg-green-500"></div>
+                    </div>
+                    <h3 class="text-xl font-bold font-code"><span class="text-cyber-blue">AI</span><span class="text-cyber-green">面试题</span><span class="text-cyber-purple">生成器</span></h3>
+                    <p class="text-gray-400 mt-2 font-code">$ echo "提升面试效率的智能工具" > /dev/stdout</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-cyber-blue cyber-border p-2 rounded">
+                        <i class="fab fa-github text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-cyber-green cyber-border p-2 rounded">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-cyber-purple cyber-border p-2 rounded">
+                        <i class="fab fa-linkedin text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <pre class="font-code">/* © 2023 AI面试题生成器. 保留所有权利. */</pre>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function interviewApp() {
+            return {
+                // 数据状态
+                uploadedFile: null,
+                jobTitle: '',
+                companyName: '',
+                jobRequirements: '',
+                questions: [],
+                isGenerating: false,
+                dragover: false,
+                terminalHistory: [],
+                typingEffect: null,
+                resumeData: null,
+                resumeSummary: '',
+
+                // 计算属性
+                get canGenerate() {
+                    return this.uploadedFile && this.jobTitle.trim() && this.jobRequirements.trim();
+                },
+
+                // 初始化方法
+                init() {
+                    // 添加终端打字效果
+                    this.startTypingEffect();
+                    
+                    // 添加矩阵背景效果
+                    this.initMatrixEffect();
+                },
+                
+                startTypingEffect() {
+                    const typingElements = document.querySelectorAll('.typing-animation');
+                    typingElements.forEach(el => {
+                        const text = el.textContent;
+                        el.textContent = '';
+                        let i = 0;
+                        this.typingEffect = setInterval(() => {
+                            if (i < text.length) {
+                                el.textContent += text.charAt(i);
+                                i++;
+                            } else {
+                                clearInterval(this.typingEffect);
+                                setTimeout(() => {
+                                    el.textContent = '';
+                                    i = 0;
+                                    this.typingEffect = setInterval(() => {
+                                        if (i < text.length) {
+                                            el.textContent += text.charAt(i);
+                                            i++;
+                                        } else {
+                                            clearInterval(this.typingEffect);
+                                            this.startTypingEffect();
+                                        }
+                                    }, 50);
+                                }, 3000);
+                            }
+                        }, 50);
+                    });
+                },
+                
+                initMatrixEffect() {
+                    const matrixBgs = document.querySelectorAll('.matrix-bg');
+                    matrixBgs.forEach(el => {
+                        // 简化版矩阵效果，实际项目中可以使用canvas实现更复杂的效果
+                        setInterval(() => {
+                            const randomChar = String.fromCharCode(0x30A0 + Math.random() * 96);
+                            const span = document.createElement('span');
+                            span.textContent = randomChar;
+                            span.style.position = 'absolute';
+                            span.style.left = Math.random() * 100 + '%';
+                            span.style.top = Math.random() * 100 + '%';
+                            span.style.color = '#0f8';
+                            span.style.opacity = '0.7';
+                            span.style.fontSize = '12px';
+                            span.style.fontFamily = 'monospace';
+                            el.appendChild(span);
+                            
+                            setTimeout(() => {
+                                span.style.opacity = '0';
+                                setTimeout(() => {
+                                    el.removeChild(span);
+                                }, 500);
+                            }, 1000);
+                        }, 200);
+                    });
+                },
+                
+                addTerminalHistory(command, output) {
+                    this.terminalHistory.push({ command, output });
+                },
+
+                // 文件处理方法
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    this.processFile(file);
+                },
+
+                handleFileDrop(event) {
+                    this.dragover = false;
+                    const file = event.dataTransfer.files[0];
+                    this.processFile(file);
+                },
+
+                async processFile(file) {
+                    if (file && file.type === 'application/pdf') {
+                        this.uploadedFile = file;
+                        // 上传PDF并提取结构化简历
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        const res = await fetch('/api/dev/v1/pdf/extract', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (res.ok) {
+                            this.resumeData = await res.json();
+                            this.addTerminalHistory('upload resume.pdf', '[SUCCESS] 文件上传并解析成功');
+                            // 自动调用简历摘要接口
+                            await this.summarizeResume();
+                        } else {
+                            this.addTerminalHistory('upload resume.pdf', '[ERROR] 文件解析失败');
+                            alert('简历解析失败');
+                        }
+                    } else {
+                        this.addTerminalHistory('upload resume', '[ERROR] Invalid file format. Please upload PDF file.');
+                        alert('请上传PDF格式的文件');
+                    }
+                },
+
+                async summarizeResume() {
+                    if (!this.resumeData) return;
+                    const res = await fetch('/api/dev/v1/userinfo/summary', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ resume_data: this.resumeData })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.resumeSummary = data.summary;
+                        this.addTerminalHistory('summarize', '[SUCCESS] 简历摘要生成成功');
+                    } else {
+                        this.addTerminalHistory('summarize', '[ERROR] 简历摘要生成失败');
+                        alert('简历摘要生成失败');
+                    }
+                },
+
+                // 生成面试题
+                async generateQuestions() {
+                    if (!this.canGenerate || !this.resumeSummary) {
+                        alert('请先上传简历并生成摘要');
+                        return;
+                    }
+                    this.isGenerating = true;
+                    this.questions = [];
+                    this.addTerminalHistory(
+                        `./generate.sh --job="${this.jobTitle}" --resume="${this.uploadedFile.name}"`,
+                        '[INFO] Analyzing resume and job requirements...\n[INFO] Generating interview questions...'
+                    );
+                    
+                    // 普通POST请求，等待整体json array返回
+                    const res = await fetch('/api/v1/interview/info/get_all', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            resume_summary: this.resumeSummary,
+                            job_title: this.jobTitle,
+                            company_name: this.companyName,
+                            job_requirements: this.jobRequirements
+                        })
+                    });
+
+                    if (!res.ok) {
+                        this.isGenerating = false;
+                        alert('面试题生成失败');
+                        return;
+                    }
+
+                    const questions = await res.json();
+                    this.questions = (questions || []).map(q => ({ ...q, showAnswer: false }));
+                    this.isGenerating = false;
+                    this.addTerminalHistory('[SYSTEM]', `[SUCCESS] 生成${this.questions.length}道面试题`);
+                },
+
+                // 重新生成面试题
+                async regenerateQuestions() {
+                    this.addTerminalHistory(
+                        './generate.sh --force',
+                        '[INFO] Regenerating questions with different patterns...'
+                    );
+                    
+                    await this.generateQuestions();
+                },
+
+                // 导出面试题
+                exportQuestions() {
+                    const content = this.questions.map((q, index) => 
+                        `${index + 1}. [${q.category}] ${q.question}\n参考答案：${q.answer}\n`
+                    ).join('\n');
+                    
+                    this.addTerminalHistory(
+                        'export > questions.md',
+                        `[SUCCESS] Exported ${this.questions.length} questions to "${this.jobTitle || '面试题'}_${new Date().toLocaleDateString()}.txt"`
+                    );
+                    
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${this.jobTitle || '面试题'}_${new Date().toLocaleDateString()}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
