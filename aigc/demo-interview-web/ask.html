@@ -59,6 +59,21 @@
     </style>
 </head>
 <body class="bg-dark min-h-screen font-sans text-gray-200" x-data="askApp()">
+    <!-- 全局Loading遮罩 -->
+    <template x-if="isLoading">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <div class="flex flex-col items-center">
+                <div class="animate-spin w-16 h-16 border-4 border-cyber-blue border-t-transparent rounded-full mb-6"></div>
+                <div class="text-cyber-blue font-code text-xl font-bold">请稍候，正在处理...</div>
+            </div>
+        </div>
+    </template>
+    <!-- 超时提示 -->
+    <template x-if="showTimeoutAlert">
+        <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg font-code">
+            服务负载过高，请稍后重试
+        </div>
+    </template>
     <!-- 说明悬浮模块 -->
     <div class="fixed left-6 top-28 z-50 w-80 bg-darker cyber-border rounded-xl shadow-lg p-6 text-left text-white font-code text-sm" style="max-width:90vw;">
         <h2 class="text-lg font-bold text-cyber-blue mb-2 flex items-center"><i class="fas fa-info-circle mr-2"></i>说明</h2>
@@ -166,6 +181,32 @@
                 answerInput: '',
                 examSubmitted: false,
                 history: [], // {question, answer, score}
+                isLoading: false,
+                showTimeoutAlert: false,
+                // 通用请求处理函数
+                async fetchWithTimeout(url, options, timeout = 40000) {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    
+                    try {
+                        const response = await fetch(url, {
+                            ...options,
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        if (!response.ok) throw new Error('请求失败');
+                        return await response.json();
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            this.showTimeoutAlert = true;
+                            setTimeout(() => {
+                                this.showTimeoutAlert = false;
+                            }, 2000);
+                            throw new Error('请求超时');
+                        }
+                        throw error;
+                    }
+                },
                 // 采用知识领域并生成首题
                 async applyDomain() {
                     if (!this.domainInput.trim()) {
@@ -176,19 +217,23 @@
                     this.examSubmitted = false;
                     this.history = [];
                     this.answerInput = '';
-                    // 调用后端生成首题
+                    this.isLoading = true;
                     try {
-                        const res = await fetch('/api/v1/gen_question', {
+                        this.currentQuestion = await this.fetchWithTimeout('/api/v1/gen_question', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ domain: this.domain })
                         });
-                        if (!res.ok) throw new Error('生成题目失败');
-                        this.currentQuestion = await res.json();
                         this.answerInput = '';
                     } catch (e) {
-                        alert('生成题目失败');
+                        if (e.message === '请求超时') {
+                            // 超时错误已经在fetchWithTimeout中处理
+                        } else {
+                            alert('生成题目失败');
+                        }
                         this.currentQuestion = null;
+                    } finally {
+                        this.isLoading = false;
                     }
                 },
                 // 提交答案并获取下一个问题
@@ -197,9 +242,9 @@
                         alert('请填写答案');
                         return;
                     }
-                    // 调用后端分析得分并生成下一个问题
+                    this.isLoading = true;
                     try {
-                        const res = await fetch('/api/v1/answer_and_next', {
+                        const data = await this.fetchWithTimeout('/api/v1/answer_and_next', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -208,8 +253,6 @@
                                 answer: this.answerInput
                             })
                         });
-                        if (!res.ok) throw new Error('提交失败');
-                        const data = await res.json();
                         // 记录历史
                         this.history.push({
                             question: this.currentQuestion,
@@ -223,11 +266,16 @@
                             this.currentQuestion = data.next_question;
                             this.answerInput = '';
                         } else {
-                            // 没有下一个问题时，继续让用户答题（即currentQuestion不变），直到用户主动结束
                             this.answerInput = '';
                         }
                     } catch (e) {
-                        alert('提交失败');
+                        if (e.message === '请求超时') {
+                            // 超时错误已经在fetchWithTimeout中处理
+                        } else {
+                            alert('提交失败');
+                        }
+                    } finally {
+                        this.isLoading = false;
                     }
                 },
                 // 下载并重置
@@ -236,24 +284,28 @@
                         alert('暂无考试记录');
                         return;
                     }
-                    // 保存为json array
-                    const content = JSON.stringify(this.history, null, 2);
-                    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `考试记录_${new Date().toLocaleDateString()}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    // 重置
-                    this.currentQuestion = null;
-                    this.answerInput = '';
-                    this.examSubmitted = false;
-                    this.history = [];
-                    this.domainInput = '';
-                    this.domain = '';
+                    this.isLoading = true;
+                    setTimeout(() => {
+                        // 保存为json array
+                        const content = JSON.stringify(this.history, null, 2);
+                        const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `考试记录_${new Date().toLocaleDateString()}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        // 重置
+                        this.currentQuestion = null;
+                        this.answerInput = '';
+                        this.examSubmitted = false;
+                        this.history = [];
+                        this.domainInput = '';
+                        this.domain = '';
+                        this.isLoading = false;
+                    }, 300);
                 }
             }
         }
